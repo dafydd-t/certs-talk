@@ -11,31 +11,15 @@ import (
 )
 
 func main() {
-
-	certPem, err := os.ReadFile("client-tls.pem")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	keyPem, err := os.ReadFile("client-tls-key.pem")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	cert, err := tls.X509KeyPair(certPem, keyPem)
+	cert, err := loadCerts()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	certPool := x509.NewCertPool()
-	caCertBytes, err := os.ReadFile("ca-cert.pem")
+	certPool, err := loadCertPool()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
-	}
-	if !certPool.AppendCertsFromPEM(caCertBytes) {
-		fmt.Println("could not append cert from pem")
 		os.Exit(1)
 	}
 
@@ -64,5 +48,32 @@ func main() {
 	s := strings.TrimSpace(string(content))
 
 	fmt.Println(s)
+
+}
+
+func loadCerts() (tls.Certificate, error) {
+	certPem, err := os.ReadFile("client-tls.pem")
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	keyPem, err := os.ReadFile("client-tls-key.pem")
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	return tls.X509KeyPair(certPem, keyPem)
+
+}
+
+func loadCertPool() (*x509.CertPool, error) {
+	certPool := x509.NewCertPool()
+	caCertBytes, err := os.ReadFile("ca-cert.pem")
+	if err != nil {
+		return nil, err
+	}
+	if !certPool.AppendCertsFromPEM(caCertBytes) {
+		return nil, err
+	}
+
+	return certPool, nil
 
 }
