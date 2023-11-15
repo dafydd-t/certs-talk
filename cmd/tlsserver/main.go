@@ -25,12 +25,17 @@ func main() {
 
 	cfg := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		ClientAuth:   tls.NoClientCert,
-		RootCAs:      certPool,
+		ClientCAs:    certPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		io.WriteString(w, "Hello, TLS!\n")
+		if req.TLS != nil && len(req.TLS.PeerCertificates) > 0 {
+			cname := req.TLS.PeerCertificates[0].Subject.CommonName
+			io.WriteString(w, fmt.Sprintf("Hello, %s!", cname))
+		} else {
+			io.WriteString(w, "Hello, stranger!")
+		}
 	})
 
 	srv := &http.Server{

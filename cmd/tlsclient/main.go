@@ -27,7 +27,6 @@ func main() {
 		Certificates:       []tls.Certificate{cert},
 		ServerName:         "server.daf.com",
 		RootCAs:            certPool,
-		MinVersion:         tls.VersionTLS13,
 		InsecureSkipVerify: false,
 	}
 
